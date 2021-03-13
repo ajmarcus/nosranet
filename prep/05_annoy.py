@@ -22,12 +22,12 @@ def log(message: str) -> str:
 
 def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: start read titles"))
-    titles = set([])
+    titles_set = set([])
     with open(f"./data/{recipe}.json", mode="r", encoding="utf-8") as f:
         for line in f:
             row = json.loads(line)
-            titles.add(row["title"])
-    titles = sorted(list(titles))
+            titles_set.add(row["title"])
+    titles = sorted(list(titles_set))
     midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
