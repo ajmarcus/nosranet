@@ -9,7 +9,7 @@ from os import mkdir, path
 from time import time
 import torch
 
-# Build shared index for images and recipe titles
+# Build shared index for recipe titles
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 START_TIME = int(time())
