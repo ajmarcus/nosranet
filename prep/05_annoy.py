@@ -31,7 +31,7 @@ def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
     network, preprocess = clip.load(model, device=DEVICE)
-    text = clip.tokenize(titles).to(DEVICE)
+    text = clip.tokenize(titles[:1000]).to(DEVICE)
     with torch.no_grad():
         tensor = network.encode_text(text)
     matrix = tensor.cpu().numpy()
