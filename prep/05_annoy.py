@@ -12,6 +12,7 @@ import torch
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 START_TIME = int(time())
+STEP_SIZE = 10000
 MODEL_FILE = {"ViT-B/32": "vit32", "RN50": "rn50"}
 
 
@@ -20,12 +21,11 @@ def log(message: str) -> str:
     return f"{hours}h: {message}"
 
 
-def encode_text(model, titles, device):
-    network, preprocess = clip.load(model, device=device)
-    text = clip.tokenize(titles).to(device)
+def encode_text(network, titles):
+    text = clip.tokenize(titles).to(DEVICE)
     with torch.no_grad():
         tensor = network.encode_text(text)
-    return tensor
+    return tensor.cpu().numpy()
 
 
 def build_tree(model: str, recipe: str) -> bool:
@@ -36,12 +36,15 @@ def build_tree(model: str, recipe: str) -> bool:
             row = json.loads(line)
             titles_set.add(row["title"])
     titles = sorted(list(titles_set))
-    midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
-    first_half = encode_text(model, titles[:midpoint], device="cuda:0").cpu().numpy()
-    second_half = encode_text(model, titles[midpoint:], device="cuda:1").cpu().numpy()
-    matrix = np.concatenate([first_half, second_half], axis=0)
+    network, preprocess = clip.load(model, device=DEVICE)
+    tensors = []
+    for i in range(round(len(titles) / STEP_SIZE)):
+        start = i * STEP_SIZE
+        end = min([len(titles), i * (STEP_SIZE + 1)])
+        tensors.append(encode_text(network=network, titles=titles[start:end]))
+    matrix = np.concatenate(tensors, axis=0)
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
