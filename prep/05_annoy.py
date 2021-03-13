@@ -77,8 +77,8 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     logging.info(log("start 05_annoy"))
-    build_tree(model="ViT-B/32", recipe="01_join")
-    build_tree(model="RN50", recipe="01_join")
+    # build_tree(model="ViT-B/32", recipe="01_join")
+    # build_tree(model="RN50", recipe="01_join")
     build_tree(model="ViT-B/32", recipe="04_crop")
     build_tree(model="RN50", recipe="04_crop")
     logging.info(log("end 05_annoy"))
