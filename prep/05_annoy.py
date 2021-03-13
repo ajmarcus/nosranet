@@ -30,8 +30,9 @@ def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
     network, preprocess = clip.load(model, device=DEVICE)
+    text = clip.tokenize(titles).to(DEVICE)
     with torch.no_grad():
-        matrix = network.encode_text(clip.tokenize(titles)).numpy()
+        matrix = network.encode_text(text).numpy()
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
