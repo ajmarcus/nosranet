@@ -5,6 +5,7 @@ import clip
 import json
 import logging
 import numpy as np
+from os import mkdir, path
 from time import time
 import torch
 
@@ -14,6 +15,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 START_TIME = int(time())
 STEP_SIZE = 10000
 MODEL_FILE = {"ViT-B/32": "vit32", "RN50": "rn50"}
+TEMPLATE = "A photo of a {title}, a type of food."
+TREE_PATH = "./data/tree"
 
 
 def log(message: str) -> str:
@@ -28,7 +31,11 @@ def encode_text(network, titles):
     return tensor.cpu().numpy()
 
 
-def build_tree(model: str, recipe: str) -> bool:
+def format_template(title: str) -> str:
+    return TEMPLATE.format(title=title)
+
+
+def build_tree(model: str, recipe: str, template: bool) -> bool:
     logging.info(log(f"{model} {recipe}: start read titles"))
     titles_set = set([])
     with open(f"./data/{recipe}.json", mode="r", encoding="utf-8") as f:
@@ -36,6 +43,8 @@ def build_tree(model: str, recipe: str) -> bool:
             row = json.loads(line)
             titles_set.add(row["title"])
     titles = sorted(list(titles_set))
+    if template:
+        titles = map(format_template, titles)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
     network, preprocess = clip.load(model, device=DEVICE)
@@ -53,12 +62,12 @@ def build_tree(model: str, recipe: str) -> bool:
             logging.info(log(f"{model} {recipe}: load tree with {i} encodings"))
         t.add_item(i, matrix[i, :])
     t.build(1000)
-    tree_filename = f"./data/05_{MODEL_FILE[model]}_{recipe}.ann"
+    tree_filename = f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}.ann"
     logging.info(log(f"{model} {recipe}: start save tree {tree_filename}"))
     t.save(tree_filename)
     logging.info(log(f"{model} {recipe}: start save titles"))
     with open(
-        f"./data/05_{MODEL_FILE[model]}_{recipe}.txt", mode="w", encoding="utf-8"
+        f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}.txt", mode="w", encoding="utf-8"
     ) as f:
         for t in titles:
             f.write(f"{t}\n")
@@ -73,8 +82,14 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     logging.info(log("start 05_annoy"))
-    build_tree(model="ViT-B/32", recipe="01_join")
-    build_tree(model="RN50", recipe="01_join")
-    build_tree(model="ViT-B/32", recipe="04_crop")
-    build_tree(model="RN50", recipe="04_crop")
+    if not path.exists(TREE_PATH):
+        mkdir(TREE_PATH)
+    build_tree(model="ViT-B/32", recipe="01_join", template=False)
+    build_tree(model="ViT-B/32", recipe="01_join", template=True)
+    build_tree(model="RN50", recipe="01_join", template=False)
+    build_tree(model="RN50", recipe="01_join", template=True)
+    build_tree(model="ViT-B/32", recipe="04_crop", template=False)
+    build_tree(model="ViT-B/32", recipe="04_crop", template=True)
+    build_tree(model="RN50", recipe="04_crop", template=False)
+    build_tree(model="RN50", recipe="04_crop", template=True)
     logging.info(log("end 05_annoy"))
