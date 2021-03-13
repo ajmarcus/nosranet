@@ -20,16 +20,6 @@ def log(message: str) -> str:
     return f"{hours}h: {message}"
 
 
-def encode_text(model, titles, device):
-    network, preprocess = clip.load(model, device=device)
-    text = clip.tokenize(titles).to(device)
-    with torch.no_grad():
-        matrix = network.encode_text(text)
-    del network, preprocess, text
-    matrix.cpu().data.numpy()
-    return matrix
-
-
 def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: start read titles"))
     titles = set([])
@@ -41,16 +31,11 @@ def build_tree(model: str, recipe: str) -> bool:
     midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
-    matrix = encode_text(model=model, titles=titles, device="cuda:3")
-    # if torch.cuda.is_available():
-    #     first_half = encode_text(model=model, titles=titles[:midpoint], device="cuda:2")
-    #     second_half = encode_text(
-    #         model=model, titles=titles[midpoint:], device="cuda:3"
-    #     )
-    # else:
-    #     first_half = encode_text(model=model, titles=titles[:midpoint], device="cpu")
-    #     second_half = encode_text(model=model, titles=titles[midpoint:], device="cpu")
-    # matrix = np.concatenate([first_half, second_half], axis=0)
+    network, preprocess = clip.load(model, device=DEVICE)
+    text = clip.tokenize(titles).to(DEVICE)
+    with torch.no_grad():
+        tensor = network.encode_text(text)
+    matrix = tensor.cpu().numpy()
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
