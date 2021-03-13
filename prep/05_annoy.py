@@ -43,6 +43,7 @@ def build_tree(model: str, recipe: str) -> bool:
     for i in range(round(len(titles) / STEP_SIZE)):
         start = i * STEP_SIZE
         end = min([len(titles), i * (STEP_SIZE + 1)])
+        logging.info(log(f"{model} {recipe}: encode titles from {start} to {end}"))
         tensors.append(encode_text(network=network, titles=titles[start:end]))
     matrix = np.concatenate(tensors, axis=0)
     logging.info(log(f"{model} {recipe}: start load tree"))
