@@ -26,7 +26,7 @@ def encode_text(model, titles, device):
     with torch.no_grad():
         matrix = network.encode_text(text)
     del network, preprocess, text
-    matrix.cpu().numpy()
+    matrix.to("cpu").numpy()
     return matrix
 
 
