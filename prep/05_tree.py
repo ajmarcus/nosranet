@@ -62,12 +62,14 @@ def build_tree(model: str, recipe: str, template: bool) -> bool:
             logging.info(log(f"{model} {recipe}: load tree with {i} encodings"))
         t.add_item(i, matrix[i, :])
     t.build(1000)
-    tree_filename = f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}.ann"
+    tree_filename = f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}_{template}.ann"
     logging.info(log(f"{model} {recipe}: start save tree {tree_filename}"))
     t.save(tree_filename)
     logging.info(log(f"{model} {recipe}: start save titles"))
     with open(
-        f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}.txt", mode="w", encoding="utf-8"
+        f"{TREE_PATH}/05_{MODEL_FILE[model]}_{recipe}_{template}.txt",
+        mode="w",
+        encoding="utf-8",
     ) as f:
         for t in titles:
             f.write(f"{t}\n")
@@ -77,11 +79,11 @@ def build_tree(model: str, recipe: str, template: bool) -> bool:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        filename=f"data/05_annoy.log",
+        filename=f"data/05_tree.log",
         format="%(levelname)s:%(message)s",
         level=logging.INFO,
     )
-    logging.info(log("start 05_annoy"))
+    logging.info(log("start 05_tree"))
     if not path.exists(TREE_PATH):
         mkdir(TREE_PATH)
     build_tree(model="ViT-B/32", recipe="01_join", template=False)
@@ -92,4 +94,4 @@ if __name__ == "__main__":
     build_tree(model="ViT-B/32", recipe="04_crop", template=True)
     build_tree(model="RN50", recipe="04_crop", template=False)
     build_tree(model="RN50", recipe="04_crop", template=True)
-    logging.info(log("end 05_annoy"))
+    logging.info(log("end 05_tree"))
