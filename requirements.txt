@@ -1,8 +1,14 @@
 annoy==1.17.0
+git+https://github.com/openai/CLIP.git
+ftfy==5.8
 numpy==1.19.5
 lxml==4.6.2
 Pillow==8.1.0
+torch==1.7.1
+regex==2.5.91
 requests==2.25.1
 tensorboard==2.4.1
 tensorflow==2.4.1
 tensorflow-datasets==4.2.0
+torchvision==0.8.2
+tqdm==4.56.0

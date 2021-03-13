@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from os import listdir, mkdir, path
+import json
+from typing import Set
 from PIL import Image, ExifTags
 
 CROP_PATH = "./data/crawl/crop"
@@ -76,17 +78,21 @@ def write_image(filename: str, image: Image) -> str:
     return filename
 
 
-if __name__ == "__main__":
-    i = 0
-    if not path.exists(CROP_PATH):
-        mkdir(CROP_PATH)
-    cropped_recipes = set(
+def get_cropped_ids() -> Set[int]:
+    return set(
         [
             int(f.split(".")[0])
             for f in listdir(CROP_PATH)
             if path.isfile(path.join(CROP_PATH, f))
         ]
     )
+
+
+def crop_recipes():
+    i = 0
+    if not path.exists(CROP_PATH):
+        mkdir(CROP_PATH)
+    cropped_recipes = get_cropped_ids()
     for f in listdir(IMAGE_PATH):
         recipe_id, ending = f.split(".")
         current_recipe_id = int(recipe_id)
@@ -111,3 +117,15 @@ if __name__ == "__main__":
                 continue
             if i % 500 == 0:
                 print(f"cropped: ({i}) images")
+
+
+if __name__ == "__main__":
+    crop_recipes()
+    image_recipe_ids = get_cropped_ids()
+    with open("./data/02_filter.json", mode="r", encoding="utf-8") as i, open(
+        "./data/04_crop.json", mode="w", encoding="utf-8"
+    ) as o:
+        for line in i:
+            row = json.loads(line)
+            if int(row["id"]) in image_recipe_ids:
+                o.write(line)
