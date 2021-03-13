@@ -4,6 +4,7 @@ from annoy import AnnoyIndex
 import clip
 import json
 import logging
+import numpy as np
 from time import time
 import torch
 
@@ -19,6 +20,14 @@ def log(message: str) -> str:
     return f"{hours}h: {message}"
 
 
+def encode_text(model, titles):
+    network, preprocess = clip.load(model, device=DEVICE)
+    text = clip.tokenize(titles).to(DEVICE)
+    with torch.no_grad():
+        matrix = network.encode_text(text).numpy()
+    return matrix
+
+
 def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: start read titles"))
     titles = set([])
@@ -27,12 +36,12 @@ def build_tree(model: str, recipe: str) -> bool:
             row = json.loads(line)
             titles.add(row["title"])
     titles = sorted(list(titles))
+    midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
-    network, preprocess = clip.load(model, device=DEVICE)
-    text = clip.tokenize(titles).to(DEVICE)
-    with torch.no_grad():
-        matrix = network.encode_text(text).numpy()
+    first_half = encode_text(model=model, titles=titles[:midpoint])
+    second_half = encode_text(model=model, titles=titles[midpoint:])
+    matrix = np.concatenate([first_half, second_half], axis=0)
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
