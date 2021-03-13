@@ -25,6 +25,7 @@ def encode_text(model, titles):
     text = clip.tokenize(titles).to(DEVICE)
     with torch.no_grad():
         matrix = network.encode_text(text).numpy()
+    del network, preprocess, text
     return matrix
 
 
