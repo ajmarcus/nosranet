@@ -24,9 +24,9 @@ def encode_text(model, titles, device):
     network, preprocess = clip.load(model, device=device)
     text = clip.tokenize(titles).to(device)
     with torch.no_grad():
-        matrix = network.encode_text(text).numpy()
+        matrix = network.encode_text(text)
     del network, preprocess, text
-    matrix.to("cpu")
+    matrix.cpu().numpy()
     return matrix
 
 
