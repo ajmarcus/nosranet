@@ -41,15 +41,16 @@ def build_tree(model: str, recipe: str) -> bool:
     midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
-    if torch.cuda.is_available():
-        first_half = encode_text(model=model, titles=titles[:midpoint], device="cuda:2")
-        second_half = encode_text(
-            model=model, titles=titles[midpoint:], device="cuda:3"
-        )
-    else:
-        first_half = encode_text(model=model, titles=titles[:midpoint], device="cpu")
-        second_half = encode_text(model=model, titles=titles[midpoint:], device="cpu")
-    matrix = np.concatenate([first_half, second_half], axis=0)
+    matrix = encode_text(model=model, titles=titles, device="cuda:3")
+    # if torch.cuda.is_available():
+    #     first_half = encode_text(model=model, titles=titles[:midpoint], device="cuda:2")
+    #     second_half = encode_text(
+    #         model=model, titles=titles[midpoint:], device="cuda:3"
+    #     )
+    # else:
+    #     first_half = encode_text(model=model, titles=titles[:midpoint], device="cpu")
+    #     second_half = encode_text(model=model, titles=titles[midpoint:], device="cpu")
+    # matrix = np.concatenate([first_half, second_half], axis=0)
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
@@ -77,8 +78,6 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     logging.info(log("start 05_annoy"))
-    # build_tree(model="ViT-B/32", recipe="01_join")
-    # build_tree(model="RN50", recipe="01_join")
     build_tree(model="ViT-B/32", recipe="04_crop")
     build_tree(model="RN50", recipe="04_crop")
     logging.info(log("end 05_annoy"))
