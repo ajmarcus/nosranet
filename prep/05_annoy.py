@@ -28,7 +28,6 @@ def build_tree(model: str, recipe: str) -> bool:
             row = json.loads(line)
             titles_set.add(row["title"])
     titles = sorted(list(titles_set))
-    midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
     network, preprocess = clip.load(model, device=DEVICE)
