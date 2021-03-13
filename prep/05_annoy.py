@@ -20,6 +20,14 @@ def log(message: str) -> str:
     return f"{hours}h: {message}"
 
 
+def encode_text(model, titles, device):
+    network, preprocess = clip.load(model, device=device)
+    text = clip.tokenize(titles).to(device)
+    with torch.no_grad():
+        tensor = network.encode_text(text)
+    return tensor
+
+
 def build_tree(model: str, recipe: str) -> bool:
     logging.info(log(f"{model} {recipe}: start read titles"))
     titles_set = set([])
@@ -28,13 +36,12 @@ def build_tree(model: str, recipe: str) -> bool:
             row = json.loads(line)
             titles_set.add(row["title"])
     titles = sorted(list(titles_set))
+    midpoint = round(len(titles) / 2.0)
     logging.info(log(f"{model} {recipe}: read {len(titles)} titles"))
     logging.info(log(f"{model} {recipe}: start encode titles"))
-    network, preprocess = clip.load(model, device=DEVICE)
-    text = clip.tokenize(titles[:1000]).to(DEVICE)
-    with torch.no_grad():
-        tensor = network.encode_text(text)
-    matrix = tensor.cpu().numpy()
+    first_half = encode_text(model, titles[:1000], device="cuda:0").cpu().numpy()
+    second_half = encode_text(model, titles[1000:2000], device="cuda:1").cpu().numpy()
+    matrix = np.concatenate([first_half, second_half], axis=0)
     logging.info(log(f"{model} {recipe}: start load tree"))
     t = AnnoyIndex(matrix.shape[1], "angular")
     for i in range(matrix.shape[0]):
