@@ -5,16 +5,10 @@
 # Article "Do Good Recipes Need Butter? Predicting user ratings of online recipes"
 # https://scholar.google.com/scholar?cites=8686827231755067221&as_sdt=5,32&sciodt=0,32&hl=en
 
-# count_review: Counter({5: 61219, 3: 6420, 2: 4605, 1: 298, 0: 100})
-# recipes: 72642
-# reviews: 526742
-# max_ingredients: 11
-# min_ingredients: 1
-# max_reviews: 0
-# min_reviews: 2
-# num_negative: 11423
-# num_positive: 61219
-# all_ingredients_size: 15575
+# recipes: 79871
+# reviews: ?
+# num_negative: 35151
+# num_positive: 44720
 
 from datetime import datetime
 import json
@@ -28,10 +22,9 @@ from tensorflow.keras import callbacks, layers, losses, metrics, optimizers, Seq
 # reproducible train/dev/test splits
 random.seed(2308923)
 
-ALL_EXAMPLES = 72642
-DROPOUT_PROB = 0.6
-MAX_INGREDIENTS = 4096
-TEST_EXAMPLES = 10000
+ALL_EXAMPLES = 79871
+DROPOUT_PROB = 0.5
+TEST_EXAMPLES = 8000
 TRAIN_EXAMPLES = ALL_EXAMPLES - TEST_EXAMPLES * 2
 BATCH_SIZE = int(TEST_EXAMPLES / 2)
 LOG_DIR = "./logs/review/{network}/{run}"
@@ -46,7 +39,7 @@ def prepare(filename: str, max_ingredients: int) -> Tuple:
         for line in f:
             row = json.loads(line)
             ingredients.append(row["ingredients"])
-            labels.append(row["label"])
+            labels.append(row["review_label"])
 
     tokenizer = Tokenizer(num_words=max_ingredients)
     tokenizer.fit_on_texts(ingredients)

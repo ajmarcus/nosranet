@@ -8,7 +8,7 @@ from typing import Counter, FrozenSet, List, NamedTuple
 
 MIN_REVIEWS = 2
 MAX_INGREDIENTS = 8192
-AVG_REVIEWS = set([0, 1, 2, 3, 5])  # keep all reviews except 4
+AVG_REVIEWS = set([0, 1, 2, 3, 4, 5])
 
 
 class Recipe(NamedTuple):
@@ -91,8 +91,8 @@ if __name__ == "__main__":
                 "title": recipe.title,
                 "url": recipe.url,
                 "ingredients": list(ingredients),
-                "label": label,
-                "avg_review": recipe.avg_review,
+                "review_label": label,
+                "review_avg": recipe.avg_review,
             }
             if recipes % 10000 == 0:
                 print(f"{row}")
