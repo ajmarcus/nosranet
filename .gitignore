@@ -2,6 +2,6 @@
 .vscode/
 bin/
 data/
-logs/image
+logs/
 notebooks/
 model/

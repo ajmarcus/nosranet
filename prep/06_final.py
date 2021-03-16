@@ -10,9 +10,13 @@ from os import mkdir, path
 import torch
 from typing import Any, Dict, List, Optional, Tuple
 
-
+CUDA = "cuda"
+CPU = "cpu"
+VALID_DEVICE = set([CUDA, CPU])
 CROP_PATH = "./data/crawl/crop"
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = CUDA if torch.cuda.is_available() else CPU
+if DEVICE not in VALID_DEVICE:
+    raise Exception(f"device: expected {VALID_DEVICE} actual {DEVICE}")
 FEATURES_PATH = "./data/features"
 TEMPLATE = "A photo of a {title}, a type of food."
 
@@ -151,16 +155,27 @@ if __name__ == "__main__":
                 and vit32.has_label(title)
             ):
                 row["image"] = {}
-                row["image"]["rn50"] = rn50.img2vec(rid).tolist()
-                row["image"]["vit32"] = vit32.img2vec(rid).tolist()
                 row["title_index"] = index
+                if DEVICE == CUDA:
+                    row["image"]["rn50"] = rn50.img2vec(rid).tolist()
+                    row["image"]["vit32"] = vit32.img2vec(rid).tolist()
 
-                rn50_title_label, rn50_title_context = rn50.title2vec(title)
-                rn50_label.add_item(index, rn50_title_label.tolist())
-                rn50_context.add_item(index, rn50_title_context.tolist())
-                vit32_title_label, vit32_title_context = vit32.title2vec(title)
-                vit32_label.add_item(index, vit32_title_label.tolist())
-                vit32_context.add_item(index, vit32_title_context.tolist())
+                    rn50_title_label, rn50_title_context = rn50.title2vec(title)
+                    rn50_label.add_item(index, rn50_title_label.tolist())
+                    rn50_context.add_item(index, rn50_title_context.tolist())
+                    vit32_title_label, vit32_title_context = vit32.title2vec(title)
+                    vit32_label.add_item(index, vit32_title_label.tolist())
+                    vit32_context.add_item(index, vit32_title_context.tolist())
+                elif DEVICE == CPU:
+                    row["image"]["rn50"] = rn50.get_image_feature(rid)
+                    row["image"]["vit32"] = vit32.get_image_feature(rid)
+
+                    rn50_label.add_item(index, rn50.get_label_plain(title))
+                    rn50_context.add_item(index, rn50.get_label_context(title))
+                    vit32_label.add_item(index, vit32.get_label_plain(title))
+                    vit32_context.add_item(index, vit32.get_label_context(title))
+                else:
+                    raise Exception(f"device: expected {VALID_DEVICE} actual {DEVICE}")
 
                 out = json.dumps(row)
                 if index % 500 == 0:
@@ -168,7 +183,7 @@ if __name__ == "__main__":
                     row["image"]["rn50"] = len(row["image"]["rn50"])
                     row["image"]["vit32"] = len(row["image"]["vit32"])
                     print(json.dumps(row))
-                if index % 10000 == 0:
+                if index % 10000 == 0 and DEVICE == CUDA:
                     rn50_test_image = rn50.test_image(rid)
                     rn50_test_title = rn50.test_title(title)
                     vit32_test_image = vit32.test_image(rid)
