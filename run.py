@@ -140,5 +140,5 @@ if __name__ == "__main__":
 # 2/2 [==============================] - 0s 39ms/step - loss: -0.3498 - cosine_similarity: 0.3498
 
 # rn50 deep
-Epoch 33/100
+# Epoch 33/100
 # 16/16 [==============================] - 4s 241ms/step - loss: -0.3786 - cosine_similarity: 0.3786 - val_loss: -0.3621 - val_cosine_similarity: 0.3621
