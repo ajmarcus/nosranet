@@ -68,7 +68,7 @@ class Clip(object):
     def title2vec(self, title: str) -> Tuple[np.ndarray, np.ndarray]:
         with torch.no_grad():
             tensor = self.network.encode_text(
-                clip.tokenize([title, TEMPLATE.format(title=title)])
+                clip.tokenize([title, TEMPLATE.format(title=title)]).to(DEVICE)
             )
         matrix = tensor.cpu().numpy()
         title = matrix[0, :]
