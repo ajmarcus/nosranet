@@ -126,7 +126,7 @@ if __name__ == "__main__":
                     histogram_freq=1,
                 )
             ],
-            epochs=5,
+            epochs=30,
             validation_data=(X_dev, Y_dev),
         )
         results = model.evaluate(X_test, Y_test, batch_size=BATCH_SIZE)
