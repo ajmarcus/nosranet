@@ -102,7 +102,7 @@ class Clip(object):
     def test_title(self, title: str) -> Optional[Any]:
         with torch.no_grad():
             tensor = self.network.encode_text(
-                clip.tokenize([title, TEMPLATE.format(title=title)])
+                clip.tokenize([title, TEMPLATE.format(title=title)]).to(DEVICE)
             )
         matrix = tensor.cpu().numpy()
         expected_title = matrix[0, :]
