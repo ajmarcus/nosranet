@@ -3,5 +3,6 @@
 bin/
 data/
 logs/
+nosranet/data/*.json
 notebooks/
 model/
