@@ -3,7 +3,7 @@
 from typing import NamedTuple
 from annoy import AnnoyIndex
 from .config import Label, FEATURES_FILE, MODEL_PATH, Model, SIZE, TREE, log
-from .prepare import prepare, prepare_test
+from .prepare import prepare_test
 from .train import train
 import json
 import numpy as np
@@ -48,7 +48,7 @@ def evaluate_baseline(
     accuracy = calc_accuracy(Y_true=Y_true, Y_pred=X_nearest)
     print("========================================================")
     print("========================================================")
-    log(f"({name.name},{label.name}) baseline accuracy: {accuracy}")
+    print(f"({name.name},{label.name}) baseline accuracy: {accuracy}")
     print("========================================================")
     print("========================================================")
     return accuracy
@@ -74,7 +74,7 @@ def evaluate(
     accuracy = calc_accuracy(Y_true=Y_true, Y_pred=Y_nearest)
     print("========================================================")
     print("========================================================")
-    log(f"({name.name},{label.name},{num_layers}) accuracy: {accuracy}")
+    print(f"({name.name},{label.name},{num_layers}) accuracy: {accuracy}")
     print("========================================================")
     print("========================================================")
     return accuracy
