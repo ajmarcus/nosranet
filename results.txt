@@ -1,0 +1,8 @@
+(rn50,context) baseline accuracy: 0.01375
+(rn50,context,3) accuracy: 0.0
+(vit32,context) baseline accuracy: 0.017625
+(vit32,context,3) accuracy: 0.00025
+(rn50,title) baseline accuracy: 0.013375
+(rn50,title,3) accuracy: 0.00025
+(vit32,title) baseline accuracy: 0.019375
+(vit32,title,3) accuracy: 0.000125

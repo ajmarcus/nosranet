@@ -16,7 +16,7 @@ def train(
     name: Model = Model.vit32,
     num_layers: int = 3,
     epochs: int = 5,
-    dropout_prob: float = 0.1,
+    dropout_prob: float = 0.4,
     batch_size: int = int(TEST_EXAMPLES / 2),
 ):
     log_dir = LOG_PATH.format(model=name.name, label=label.name, num_layers=num_layers)
