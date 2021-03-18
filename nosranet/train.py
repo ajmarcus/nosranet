@@ -1,14 +1,22 @@
 from .config import Label, Model, MODEL_PATH, SEED, SIZE, TEST_EXAMPLES
 from .prepare import prepare
 import random
-from tensorflow.keras import callbacks, layers, losses, metrics, optimizers, Sequential
+from tensorflow.keras import (
+    activations,
+    callbacks,
+    layers,
+    losses,
+    metrics,
+    optimizers,
+    Sequential,
+)
 from os import path
 from shutil import rmtree
 
 # tf.config.run_functions_eagerly(True)
 random.seed(SEED)
 
-LOG_PATH = "./logs/{model}_{label}_{num_layers}"
+LOG_PATH = "./logs/{model}_{label}_layers:{num_layers}_dropout:{dropout_prob}"
 
 
 def train(
@@ -17,11 +25,19 @@ def train(
     num_layers: int = 3,
     epochs: int = 5,
     dropout_prob: float = 0.4,
-    batch_size: int = int(TEST_EXAMPLES / 2),
+    batch_size: int = TEST_EXAMPLES,
 ):
-    log_dir = LOG_PATH.format(model=name.name, label=label.name, num_layers=num_layers)
+    log_dir = LOG_PATH.format(
+        model=name.name,
+        label=label.name,
+        num_layers=num_layers,
+        dropout_prob=dropout_prob,
+    )
     model_dir = MODEL_PATH.format(
-        model=name.name, label=label.name, num_layers=num_layers
+        model=name.name,
+        label=label.name,
+        num_layers=num_layers,
+        dropout_prob=dropout_prob,
     )
     if path.exists(log_dir):
         rmtree(log_dir, ignore_errors=True)
@@ -33,9 +49,10 @@ def train(
     model = Sequential()
     model.add(layers.Flatten())
     for l in range(num_layers):
-        model.add(layers.Dense(SIZE[name], activation="relu"))
+        model.add(layers.Dense(SIZE[name]))
+        model.add(layers.BatchNormalization())
+        model.add(layers.Activation(activations.relu))
         model.add(layers.Dropout(dropout_prob))
-    model.add(layers.Dense(SIZE[name]))
     model.compile(
         loss=losses.cosine_similarity,
         metrics=[metrics.CosineSimilarity()],

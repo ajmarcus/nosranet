@@ -58,6 +58,7 @@ def evaluate(
     label: Label = Label.title,
     name: Model = Model.vit32,
     num_layers: int = 3,
+    dropout_prob: float = 0.1,
     epochs: int = 5,
 ):
     knn = KNN(label=label, model=name)
@@ -65,10 +66,19 @@ def evaluate(
     Y_true = np.asarray([r.title_index for r in data.recipes])
 
     model_dir = MODEL_PATH.format(
-        model=name.name, label=label.name, num_layers=num_layers
+        model=name.name,
+        label=label.name,
+        num_layers=num_layers,
+        dropout_prob=dropout_prob,
     )
     if not path.exists(model_dir):
-        train(label=label, name=name, num_layers=num_layers, epochs=epochs)
+        train(
+            label=label,
+            name=name,
+            num_layers=num_layers,
+            dropout_prob=dropout_prob,
+            epochs=epochs,
+        )
     model = tf.keras.models.load_model(model_dir)
     Y_pred = model.predict(data.X_test)
     Y_nearest = np.apply_along_axis(knn.nearest_index, axis=1, arr=Y_pred)
@@ -76,7 +86,7 @@ def evaluate(
     print("========================================================")
     print("========================================================")
     print(
-        f"({name.name},{label.name},layers:{num_layers},epochs:{epochs}) accuracy: {accuracy}"
+        f"({name.name},{label.name},layers:{num_layers},dropout:{dropout_prob},epochs:{epochs}) accuracy: {accuracy}"
     )
     print("========================================================")
     print("========================================================")

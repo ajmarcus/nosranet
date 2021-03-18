@@ -23,7 +23,7 @@ class Recipe(NamedTuple):
 CROP_PATH = "./data/crawl/crop"
 FEATURES_PATH = "./data/features"
 FEATURES_FILE = "./data/features/features.json"
-MODEL_PATH = "./model/{model}_{label}_{num_layers}"
+MODEL_PATH = "./model/{model}_{label}_layers:{num_layers}_dropout:{dropout_prob}"
 
 TEST_EXAMPLES = 8000
 
