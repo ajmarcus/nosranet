@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 from nosranet.config import Label, Model
-from nosranet.evaluate import evaluate
-from sys import argv
+from nosranet.evaluate import evaluate, evaluate_baseline
 
 
 if __name__ == "__main__":
-    evaluate()
-    # for l in Label:
-    #     for m in Model:
-    #         evaluate(label=l, name=m, num_layers=0)
-    #         evaluate(label=l, name=m, num_layers=3)
+    for l in Label:
+        for m in Model:
+            evaluate_baseline(label=l, name=m)
+            evaluate(label=l, name=m, num_layers=3)

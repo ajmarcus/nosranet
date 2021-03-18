@@ -2,7 +2,8 @@ from .config import Label, Model, MODEL_PATH, SEED, SIZE, TEST_EXAMPLES
 from .prepare import prepare
 import random
 from tensorflow.keras import callbacks, layers, losses, metrics, optimizers, Sequential
-from os import path, rmdir
+from os import path
+from shutil import rmtree
 
 # tf.config.run_functions_eagerly(True)
 random.seed(SEED)
@@ -23,9 +24,9 @@ def train(
         model=name.name, label=label.name, num_layers=num_layers
     )
     if path.exists(log_dir):
-        rmdir(log_dir)
+        rmtree(log_dir, ignore_errors=True)
     if path.exists(model_dir):
-        rmdir(model_dir)
+        rmtree(model_dir, ignore_errors=True)
 
     data = prepare(model=name, label=label)
 

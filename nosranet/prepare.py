@@ -1,6 +1,6 @@
 from annoy import AnnoyIndex
-from typing import NamedTuple
-from .config import Label, Model, FEATURES_FILE, SEED, SIZE, TEST_EXAMPLES, TREE
+from typing import List, NamedTuple, Tuple
+from .config import Label, Model, Recipe, FEATURES_FILE, SEED, SIZE, TEST_EXAMPLES, TREE
 import json
 from os import mkdir, path
 import random
@@ -22,18 +22,68 @@ class Dataset(NamedTuple):
     Y_test: Tensor
 
 
+class Split(NamedTuple):
+    train_end: int
+    test_end: int
+
+
+class Testset(NamedTuple):
+    X_test: Tensor
+    Y_test: Tensor
+    recipes: List[Recipe]
+
+
+def calc_split(num_examples) -> Split:
+    return Split(
+        train_end=num_examples - TEST_EXAMPLES * 2,
+        test_end=num_examples - TEST_EXAMPLES,
+    )
+
+
 def split(X: Tensor, Y: Tensor) -> Dataset:
     assert X.shape[0] == Y.shape[0]
 
-    all_examples = X.shape[0]
-    train_examples = all_examples - TEST_EXAMPLES * 2
+    split = calc_split(X.shape[0])
     return Dataset(
-        X_train=X[:train_examples],
-        Y_train=Y[:train_examples],
-        X_dev=X[train_examples : train_examples + TEST_EXAMPLES],
-        Y_dev=Y[train_examples : train_examples + TEST_EXAMPLES],
-        X_test=X[train_examples + TEST_EXAMPLES :],
-        Y_test=Y[train_examples + TEST_EXAMPLES :],
+        X_train=X[: split.train_end],
+        Y_train=Y[: split.train_end],
+        X_dev=X[split.train_end : split.test_end],
+        Y_dev=Y[split.train_end : split.test_end],
+        X_test=X[split.test_end :],
+        Y_test=Y[split.test_end :],
+    )
+
+
+def prepare_test(model: Model, label: Label) -> Testset:
+    num_examples = 0
+    features = []
+    labels = []
+    recipes = []
+
+    prepare_file = PREPARE_TEMPLATE.format(
+        path=PREPARE_PATH, model=model.name, label=label.name
+    )
+    if not path.isfile(prepare_file):
+        prepare(model=model, label=label)
+    with open(prepare_file, mode="r", encoding="utf-8") as f:
+        for line in f:
+            num_examples += 0
+            row = json.loads(line)
+            features.append(row["feature"])
+            labels.append(row["label"])
+            recipes.append(
+                Recipe(
+                    id=row["id"],
+                    title=row["title"],
+                    title_index=row["title_index"],
+                    ingredients=row["ingredients"],
+                )
+            )
+    split = calc_split(num_examples=num_examples)
+    return Testset(
+        X_test=tf.convert_to_tensor(features[split.test_end :]),
+        Y_test=tf.convert_to_tensor(labels[split.test_end :]),
+        recipes=recipes[split.test_end :],
     )
 
 
@@ -51,8 +101,8 @@ def prepare(model: Model, label: Label) -> Dataset:
         with open(prepare_file, mode="r", encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
-                features.append(row["image"])
-                labels.append(row["title"])
+                features.append(row["feature"])
+                labels.append(row["label"])
         return split(
             X=tf.convert_to_tensor(features),
             Y=tf.convert_to_tensor(labels),
@@ -69,16 +119,29 @@ def prepare(model: Model, label: Label) -> Dataset:
                     (
                         row["image"][model.name],
                         title_tree.get_item_vector(row["title_index"]),
+                        Recipe(
+                            id=row["id"],
+                            title=row["title"],
+                            title_index=row["title_index"],
+                            ingredients=row["ingredients"],
+                        ),
                     )
                 )
         random.shuffle(examples)
 
         with open(prepare_file, mode="w", encoding="utf-8") as f:
             for example in examples:
-                feature, label = example
+                feature, label, recipe = example
                 features.append(feature)
                 labels.append(label)
-                row = {"image": feature, "title": label}
+                row = {
+                    "feature": feature,
+                    "label": label,
+                    "id": recipe.id,
+                    "title": recipe.title,
+                    "title_index": recipe.title_index,
+                    "ingredients": recipe.ingredients,
+                }
                 f.write(f"{json.dumps(row)}\n")
 
         return split(

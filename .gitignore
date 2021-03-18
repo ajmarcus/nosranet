@@ -4,5 +4,6 @@ bin/
 data/
 logs/
 nosranet/data/*.json
+nosranet/__pycache__/
 notebooks/
 model/

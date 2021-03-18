@@ -1,5 +1,6 @@
 from enum import Enum
 from time import time
+from typing import List, NamedTuple
 
 
 class Model(Enum):
@@ -10,6 +11,13 @@ class Model(Enum):
 class Label(Enum):
     context = 1
     title = 2
+
+
+class Recipe(NamedTuple):
+    id: int
+    title: str
+    title_index: int
+    ingredients: List[str]
 
 
 CROP_PATH = "./data/crawl/crop"

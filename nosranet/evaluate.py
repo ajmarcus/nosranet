@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from typing import Dict
+from typing import NamedTuple
 from annoy import AnnoyIndex
-from .config import Label, FEATURES_FILE, MODEL_PATH, Model, SIZE, TREE
-from .prepare import prepare
+from .config import Label, FEATURES_FILE, MODEL_PATH, Model, SIZE, TREE, log
+from .prepare import prepare, prepare_test
 from .train import train
 import json
 import numpy as np
@@ -11,31 +11,8 @@ from os import path
 import tensorflow as tf
 
 
-class ImageLookup(object):
-    def __init__(self, model: Model) -> None:
-        self.vector_id = {}
-        with open(FEATURES_FILE, mode="r", encoding="utf-8") as f:
-            for line in f:
-                row = json.loads(line)
-                self.vector_id[np.asarray(row["image"][model.name])] = int(row["id"])
-
-    def get(self, vector: tf.Tensor) -> int:
-        return self.vector_id[vector.numpy()]
-
-
-class TitleLookup(object):
-    def __init__(self) -> None:
-        self.index_title = {}
-        with open(FEATURES_FILE, mode="r", encoding="utf-8") as f:
-            for line in f:
-                row = json.loads(line)
-                self.index_title[int(row["title_index"])] = {
-                    "id": int(row["id"]),
-                    "title": row["title"],
-                }
-
-    def get(self, index: int) -> Dict:
-        return self.index_title[index]
+class Metrics(NamedTuple):
+    accuracy: float  # correct / total
 
 
 class KNN(object):
@@ -43,12 +20,38 @@ class KNN(object):
         self.tree = AnnoyIndex(SIZE[model], "angular")
         self.tree.load(TREE[model][label])
 
-    def nearest(self, y_pred: tf.Tensor) -> tf.Tensor:
-        index = self.tree.get_nns_by_vector(vector=y_pred.numpy(), n=1)[0]
-        return tf.convert_to_tensor(self.tree.get_item_vector(index))
+    def nearest_index(self, y_pred: np.ndarray) -> int:
+        return self.tree.get_nns_by_vector(vector=y_pred.tolist(), n=1)[0]
 
-    def distance(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> float:
-        return self.tree.get_distance(y_true.numpy(), y_pred.numpy())
+    def nearest(self, y_pred: np.ndarray) -> np.ndarray:
+        index = self.nearest_index(y_pred=y_pred)
+        return np.asarray(self.tree.get_item_vector(index))
+
+    def distance(self, left_index: int, right_index: int) -> float:
+        return self.tree.get_distance(left_index, right_index)
+
+
+def calc_accuracy(Y_true: np.ndarray, Y_pred: np.ndarray):
+    assert Y_true.shape[0] == Y_pred.shape[0]
+    num_correct = np.sum(Y_true == Y_pred)
+    return num_correct * 1.0 / Y_true.shape[0]
+
+
+def evaluate_baseline(
+    label: Label = Label.title,
+    name: Model = Model.vit32,
+) -> float:
+    knn = KNN(label=label, model=name)
+    data = prepare_test(model=name, label=label)
+    Y_true = np.asarray([r.title_index for r in data.recipes])
+    X_nearest = np.apply_along_axis(knn.nearest_index, axis=1, arr=data.X_test.numpy())
+    accuracy = calc_accuracy(Y_true=Y_true, Y_pred=X_nearest)
+    print("========================================================")
+    print("========================================================")
+    log(f"({name.name},{label.name}) baseline accuracy: {accuracy}")
+    print("========================================================")
+    print("========================================================")
+    return accuracy
 
 
 def evaluate(
@@ -56,17 +59,22 @@ def evaluate(
     name: Model = Model.vit32,
     num_layers: int = 3,
 ):
+    knn = KNN(label=label, model=name)
+    data = prepare_test(model=name, label=label)
+    Y_true = np.asarray([r.title_index for r in data.recipes])
+
     model_dir = MODEL_PATH.format(
         model=name.name, label=label.name, num_layers=num_layers
     )
     if not path.exists(model_dir):
         train(label=label, name=name, num_layers=num_layers)
-    knn = KNN(label=label, model=name)
     model = tf.keras.models.load_model(model_dir)
-    data = prepare(model=name, label=label)
-    Y_pred = model.predict(data.X_test[:1])
-    Y_nearest = tf.map_fn(knn.nearest, Y_pred)
-    print(tf.math.reduce_sum(Y_pred))
-    print(tf.math.reduce_sum(Y_nearest))
-    results = tf.math.equal(data.Y_test[:1], Y_nearest)
-    print(results[:10])
+    Y_pred = model.predict(data.X_test)
+    Y_nearest = np.apply_along_axis(knn.nearest_index, axis=1, arr=Y_pred)
+    accuracy = calc_accuracy(Y_true=Y_true, Y_pred=Y_nearest)
+    print("========================================================")
+    print("========================================================")
+    log(f"({name.name},{label.name},{num_layers}) accuracy: {accuracy}")
+    print("========================================================")
+    print("========================================================")
+    return accuracy
