@@ -50,7 +50,6 @@ def train(
     model.add(layers.Flatten())
     for l in range(num_layers):
         model.add(layers.Dense(SIZE[name]))
-        model.add(layers.BatchNormalization())
         model.add(layers.Activation(activations.relu))
         model.add(layers.Dropout(dropout_prob))
     model.compile(
