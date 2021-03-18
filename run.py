@@ -5,7 +5,8 @@ from nosranet.evaluate import evaluate, evaluate_baseline
 
 
 if __name__ == "__main__":
+
     for l in Label:
         for m in Model:
             evaluate_baseline(label=l, name=m)
-            evaluate(label=l, name=m, num_layers=3)
+            evaluate(label=l, name=m, num_layers=5, epochs=100)
