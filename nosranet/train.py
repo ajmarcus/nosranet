@@ -52,6 +52,7 @@ def train(
         model.add(layers.Dense(SIZE[name]))
         model.add(layers.Activation(activations.relu))
         model.add(layers.Dropout(dropout_prob))
+    model.add(layers.Dense(SIZE[name]))
     model.compile(
         loss=losses.cosine_similarity,
         metrics=[metrics.CosineSimilarity()],
