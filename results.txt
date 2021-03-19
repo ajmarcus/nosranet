@@ -15,3 +15,28 @@
 (rn50,title,layers:5,epochs:100) accuracy: 0.000875
 (vit32,title) baseline accuracy: 0.019375
 (vit32,title,layers:5,epochs:100) accuracy: 0.0005
+
+(rn50,context,layers:0,dropout:0.001,epochs:100) accuracy: 0.001125
+(rn50,context,layers:0,dropout:0.4,epochs:100) accuracy: 0.001375
+(rn50,context,layers:3,dropout:0.001,epochs:100) accuracy: 0.002875
+(rn50,context,layers:3,dropout:0.4,epochs:100) accuracy: 0.0015
+(vit32,context,layers:0,dropout:0.001,epochs:100) accuracy: 0.002
+(vit32,context,layers:0,dropout:0.4,epochs:100) accuracy: 0.002375
+(vit32,context,layers:3,dropout:0.001,epochs:100) accuracy: 0.002
+(vit32,context,layers:3,dropout:0.4,epochs:100) accuracy: 0.000875
+(rn50,title,layers:0,dropout:0.001,epochs:100) accuracy: 0.001
+(rn50,title,layers:0,dropout:0.4,epochs:100) accuracy: 0.001125
+(rn50,title,layers:3,dropout:0.001,epochs:100) accuracy: 0.001625
+(rn50,title,layers:3,dropout:0.4,epochs:100) accuracy: 0.001875
+(vit32,title,layers:0,dropout:0.001,epochs:100) accuracy: 0.00125
+(vit32,title,layers:0,dropout:0.4,epochs:100) accuracy: 0.001375
+(vit32,title,layers:3,dropout:0.001,epochs:100) accuracy: 0.004
+(vit32,title,layers:3,dropout:0.4,epochs:100) accuracy: 0.000375
+
+(rn50,title,layers:3,dropout:0.1,epochs:100) accuracy: 0.00225
+(rn50,title,layers:3,dropout:0.4,epochs:100) accuracy: 0.001875
+(rn50,title,layers:3,dropout:0.7,epochs:100) accuracy: 0.000125
+(rn50,title,layers:9,dropout:0.1,epochs:100) accuracy: 0.0
+(rn50,title,layers:9,dropout:0.4,epochs:100) accuracy: 0.0
+(rn50,title,layers:9,dropout:0.7,epochs:100) accuracy: 0.0
+(rn50,title,layers:15,dropout:0.1,epochs:100) accuracy: 0.0
